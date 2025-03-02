@@ -7,13 +7,13 @@ import { PrismaService } from '../prisma/prisma.service';
 import { OrdersPaginatinDto } from './dto/orders-pagination.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
 import { Product } from './entities';
-import { PRODUCTS_MICROSERVICE } from '../config';
+import { NATS_SERVICE, PRODUCTS_MICROSERVICE } from '../config';
 
 @Injectable()
 export class OrdersService {
   constructor(
     private readonly prisma: PrismaService,
-    @Inject(PRODUCTS_MICROSERVICE) private readonly productsClient: ClientProxy
+    @Inject(NATS_SERVICE) private readonly client: ClientProxy
   ){}
 
   async create(createOrderDto: CreateOrderDto) {
@@ -21,7 +21,7 @@ export class OrdersService {
       const productIds = createOrderDto.items.map(item => item.productId)
       
       // 1. Validate products
-      const products: Product[] = await firstValueFrom(this.productsClient.send({ cmd: 'validate_products' }, productIds))
+      const products: Product[] = await firstValueFrom(this.client.send({ cmd: 'validate_products' }, productIds))
       
       // 2. Calculate total amount and total items
       const totalAmount = products.reduce((acc, item) => acc + item.price, 0)      // const order = await this.prisma.order.create({
@@ -125,7 +125,7 @@ export class OrdersService {
       })
     }
 
-    const products: Product[] = await firstValueFrom(this.productsClient.send({ cmd: 'validate_products' }, order.OrderItems.map(item => item.productId)))
+    const products: Product[] = await firstValueFrom(this.client.send({ cmd: 'validate_products' }, order.OrderItems.map(item => item.productId)))
 
 
 
