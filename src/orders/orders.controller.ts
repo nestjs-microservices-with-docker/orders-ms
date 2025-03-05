@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { EventPattern, MessagePattern, Payload } from '@nestjs/microservices';
 import { IdValidationPipe, UuidValidationPipe } from 'src/common/pipes';
 import { OrdersPaginatinDto } from './dto/orders-pagination.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
@@ -12,8 +12,13 @@ export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
   @MessagePattern({ cmd: 'create_order' })
-  create(@Payload() createOrderDto: CreateOrderDto) {
-    return this.ordersService.create(createOrderDto);
+  async create(@Payload() createOrderDto: CreateOrderDto) {
+    const order = await this.ordersService.create(createOrderDto);
+
+    return order;
+    // const paymentSession = await this.ordersService.createPaymentSession(order);
+
+    // return paymentSession;
   }
 
   @MessagePattern({ cmd: 'find_all_orders' })
@@ -29,5 +34,12 @@ export class OrdersController {
   @MessagePattern({ cmd: 'update_order_status' })
   updateStatus(@Payload() updateStatusDto: UpdateStatusDto) {
     return this.ordersService.updateStatus(updateStatusDto);
+  }
+
+  @EventPattern({ cmd: 'charge.succeeded' })
+  paidOrder(@Payload() paidOrderDto: any) {
+
+    console.log('From order ms');
+    console.log({ paidOrderDto });
   }
 }

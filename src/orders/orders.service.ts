@@ -8,6 +8,7 @@ import { OrdersPaginatinDto } from './dto/orders-pagination.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
 import { Product } from './entities';
 import { NATS_SERVICE, PRODUCTS_MICROSERVICE } from '../config';
+import { OrderWithProducts } from './interfaces/order-w-products.interface';
 
 @Injectable()
 export class OrdersService {
@@ -157,6 +158,23 @@ export class OrdersService {
         status: updateStatusDto.status
       }
     })
+  }
+
+  async createPaymentSession(order: OrderWithProducts) {
+    const paymentSession = await firstValueFrom(this.client.send({
+      cmd: 'create.payment.session',
+    }, {
+      orderId: order.id,
+      currency: 'usd',
+      items: order.OrderItems.map((item) => ({
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+      }))
+    }));
+
+    console.log({ paymentSession });
+    return paymentSession
   }
 
   remove(id: number) {
