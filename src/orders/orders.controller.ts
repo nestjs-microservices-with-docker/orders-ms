@@ -15,10 +15,13 @@ export class OrdersController {
   async create(@Payload() createOrderDto: CreateOrderDto) {
     const order = await this.ordersService.create(createOrderDto);
 
-    return order;
-    // const paymentSession = await this.ordersService.createPaymentSession(order);
+    // return order;
+    const paymentSession = await this.ordersService.createPaymentSession(order);
 
-    // return paymentSession;
+    return {
+      order,
+      paymentSession
+    };
   }
 
   @MessagePattern({ cmd: 'find_all_orders' })
