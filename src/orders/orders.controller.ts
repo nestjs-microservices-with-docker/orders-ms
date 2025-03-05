@@ -38,8 +38,6 @@ export class OrdersController {
 
   @EventPattern({ cmd: 'charge.succeeded' })
   paidOrder(@Payload() paidOrderDto: any) {
-
-    console.log('From order ms');
-    console.log({ paidOrderDto });
+    return this.ordersService.paidOrder(paidOrderDto);
   }
 }

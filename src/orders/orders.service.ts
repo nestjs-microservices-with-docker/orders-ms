@@ -9,6 +9,7 @@ import { UpdateStatusDto } from './dto/update-status.dto';
 import { Product } from './entities';
 import { NATS_SERVICE, PRODUCTS_MICROSERVICE } from '../config';
 import { OrderWithProducts } from './interfaces/order-w-products.interface';
+import { PaidOrderDto } from './dto';
 
 @Injectable()
 export class OrdersService {
@@ -173,11 +174,34 @@ export class OrdersService {
       }))
     }));
 
-    console.log({ paymentSession });
+    // console.log({ paymentSession });
     return paymentSession
   }
 
   remove(id: number) {
     return `This action removes a #${id} order`;
+  }
+  async paidOrder(paidOrderDto: PaidOrderDto) {
+    
+    const { orderId, receiptUrl, stripePaymentId } = paidOrderDto
+
+    const order = await this.prisma.order.update({
+      where: {
+        id: orderId
+      },
+      data: {
+        status: 'PAID',
+        paid: true,
+        paidAt: new Date(),
+        stripeChargeId: stripePaymentId, 
+
+        OrderReceipt: {
+          create: {
+            receiptUrl
+          },
+        },
+      },
+    });
+    return order;
   }
 }
