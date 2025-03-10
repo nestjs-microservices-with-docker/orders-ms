@@ -18,6 +18,8 @@ ENV DATABASE_URL=$ORDERS_DATABASE_URL
 
 WORKDIR /usr/src/app
 
+COPY --from=deps /usr/src/app/package*.json ./
+
 COPY --from=deps /usr/src/app/node_modules ./node_modules
 
 COPY . .
